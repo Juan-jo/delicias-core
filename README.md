@@ -1,3 +1,3 @@
 # Delicias Core
 
-Common models beckend, batch, etc
+Common models Backend, batch, etc
