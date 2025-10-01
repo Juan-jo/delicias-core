@@ -1,16 +1,19 @@
 package com.delicias.soft.services.core.supabase.order.service;
 
 import com.delicias.soft.services.core.common.OrderStatus;
+import com.delicias.soft.services.core.supabase.exception.SupabaseOrderDeliveryIdAreNotExistsException;
 import com.delicias.soft.services.core.supabase.order.dto.SupabaseOrderDTO;
 import com.delicias.soft.services.core.supabase.order.dto.SupabaseOrderLineDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 
 @Service
@@ -55,9 +58,52 @@ public class CoreSupabaseOrderService {
         );
 
         if (response.getStatusCode() == HttpStatus.NO_CONTENT || response.getStatusCode() == HttpStatus.OK) {
-            System.out.println("Status actualizado correctamente para la orden " + orderId);
+            System.out.println("Status Changed "+status.name() + ", Order ID" + orderId);
         } else {
-            throw new RuntimeException("Error actualizando el status. Código HTTP: " + response.getStatusCode());
+            throw new RuntimeException("Error in change Status Código HTTP: " + response.getStatusCode());
+        }
+
+    }
+
+    public void assignDeliveryUUID(Integer orderId, UUID deliveryUUID) {
+
+        try {
+
+            String url = supabaseUrl + URL_ORDERS + "?id=eq." + orderId;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("apikey", supabaseKey);
+            headers.set("Authorization", "Bearer " + supabaseKey);
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+            Map<String, String> requestBody = Map.of(
+                    "delivery_id", deliveryUUID.toString(),
+                    "status", OrderStatus.DELIVERY_ASSIGNED_ORDER.name());
+
+            HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.PATCH,
+                    entity,
+                    String.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.NO_CONTENT || response.getStatusCode() == HttpStatus.OK) {
+                System.out.println("Assigned deliveryUUID " + deliveryUUID + ", order ID: " + orderId);
+            }
+
+        } catch (HttpClientErrorException.Conflict e) {
+
+            System.out.println("Conflict: " + e.getResponseBodyAsString());
+
+            if(e.getResponseBodyAsString().contains("orders_delivery_id_fkey")) {
+
+                throw new SupabaseOrderDeliveryIdAreNotExistsException(String.format("Delivery Are Not Exists in Supabase - Deliverers: %s ", deliveryUUID));
+
+            }
+
         }
 
     }
