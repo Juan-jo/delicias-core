@@ -50,18 +50,12 @@ public class CoreSupabaseOrderService {
 
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
 
-        ResponseEntity<String> response = restTemplate.exchange(
+        restTemplate.exchange(
                 url,
                 HttpMethod.PATCH,
                 entity,
                 String.class
         );
-
-        if (response.getStatusCode() == HttpStatus.NO_CONTENT || response.getStatusCode() == HttpStatus.OK) {
-            System.out.println("Status Changed "+status.name() + ", Order ID" + orderId);
-        } else {
-            throw new RuntimeException("Error in change Status Código HTTP: " + response.getStatusCode());
-        }
 
     }
 
@@ -83,16 +77,12 @@ public class CoreSupabaseOrderService {
 
             HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
 
-            ResponseEntity<String> response = restTemplate.exchange(
+            restTemplate.exchange(
                     url,
                     HttpMethod.PATCH,
                     entity,
                     String.class
             );
-
-            if (response.getStatusCode() == HttpStatus.NO_CONTENT || response.getStatusCode() == HttpStatus.OK) {
-                System.out.println("Assigned deliveryUUID " + deliveryUUID + ", order ID: " + orderId);
-            }
 
         } catch (HttpClientErrorException.Conflict e) {
 
