@@ -71,8 +71,7 @@ public class CoreSupabaseOrderRouteService {
             Map<String, Object> requestBody = Map.of(
                     "geometry", orderRouteDTO.geometry(),
                     "distance", orderRouteDTO.distance(),
-                    "duration", orderRouteDTO.duration(),
-                    "latitude", Optional.of(orderRouteDTO.latitude()).orElse(null)
+                    "duration", orderRouteDTO.duration()
             );
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
